@@ -29,6 +29,8 @@
         alias: 'widget.iterationplanningboardappplanningcolumn',
 
         config: {
+            release: null,
+
             /**
              * @cfg {String}
              * The name of the field inside the record that stores the start date
@@ -200,6 +202,10 @@
                 })) {
                     card.getRecord().set('Project', column.context.getProject()._ref);
                 }
+            }
+
+            if (this.release) {
+                card.getRecord().set('Release', this.release.getRecord().raw._ref);
             }
         },
 

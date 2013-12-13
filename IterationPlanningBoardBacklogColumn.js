@@ -20,7 +20,8 @@
         },
 
         config: {
-            value: null
+            value: null,
+            release: null
         },
 
         getColumnStatus: function() {
@@ -69,6 +70,7 @@
         initComponent: function() {
             this.callParent(arguments);
 
+            console.log('release', this.release);
             this.on('afterrender', function() {
                 var cls = 'planning-column backlog';
                 this.getContentCell().addCls(cls);
@@ -112,6 +114,8 @@
         },
 
         getStoreFilter: function(model) {
+            this.storeConfig.filters = [];
+
             var filters = [];
             Ext.Array.push(filters, this.callParent(arguments));
             if (model.elementName === 'HierarchicalRequirement') {
@@ -119,6 +123,16 @@
                     filters.push({
                         property: 'DirectChildrenCount',
                         value: 0
+                    });
+                    filters.push({
+                      property: 'Feature.Release.ReleaseStartDate',
+                      operator: '>=',
+                      value: this.release.getRecord().raw.ReleaseStartDate
+                    });
+                    filters.push({
+                      property: 'Feature.Release.ReleaseDate',
+                      operator: '<=',
+                      value: this.release.getRecord().raw.ReleaseDate
                     });
                 }
             } else if (model.elementName === 'Defect') {

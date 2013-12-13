@@ -6,7 +6,9 @@
      * The Iteration Planning Board can be used to visualize and assign your User Stories and Defects within the appropriate iteration.
      */
     Ext.define('Rally.apps.iterationplanningboard.IterationPlanningBoardApp', {
-        extend: 'Rally.app.App',
+        extend: 'Rally.app.TimeboxScopedApp',
+        scopeType: 'release',
+
         requires: [
             'Rally.data.ModelFactory',
             'Rally.apps.iterationplanningboard.TimeboxGridBoard',
@@ -29,6 +31,15 @@
 
         launch: function() {
             this._showBoard();
+        },
+
+        onScopeChange: function (scope) {
+          if (this.gridboard) {
+            this.remove(this.gridboard);
+            this.gridboard = null;
+          }
+
+          this._showBoard();
         },
 
         getSettingsFields: function () {
@@ -64,6 +75,7 @@
                 context: this.getContext(),
                 modelNames: this.modelNames,
                 plugins: plugins,
+                release: this.getContext().getTimeboxScope(),
                 cardBoardConfig: {
                     cardConfig: {
                         editable: true,

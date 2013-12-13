@@ -25,7 +25,9 @@
         /**
          * @cfg {Number}
          */
-        numColumns: 3,
+        numColumns: 4,
+
+        release: null,
 
         initComponent: function() {
             this.on('toggle', function(toggleState, gridOrBoard) {
@@ -40,7 +42,7 @@
 
             this.callParent(arguments);
         },
-        
+
         _addGridOrBoard: function() {
             if (!this.timeboxes) {
                 this.timeboxType = 'Iteration';
@@ -59,10 +61,12 @@
         _getBoardConfig: function() {
             var initiallyVisibleTimeboxes = this._getInitiallyVisibleTimeboxes();
             var columns = this._getColumnConfigs(initiallyVisibleTimeboxes);
+            var release = this.release;
             return Ext.merge(this.callParent(arguments), {
                 xtype: 'rallytimeboxcardboard',
                 attribute: this.timeboxType,
                 columns: columns,
+                release: release,
                 columnConfig: {
                     xtype: 'iterationplanningboardappplanningcolumn',
                     additionalFetchFields: ['PortfolioItem'],
@@ -95,10 +99,12 @@
         },
 
         _getColumnConfigs: function(timeboxes) {
+            var release = this.release;
             var columns = [{
                 xtype: 'iterationplanningboardappbacklogcolumn',
                 flex: this._hasTimeboxes() ? 1 : 1/3,
                 cardLimit: Ext.isIE ? 25 : 100,
+                release: release,
                 columnHeaderConfig: {
                     headerTpl: 'Backlog'
                 }
@@ -107,6 +113,7 @@
             Ext.Array.each(timeboxes, function(timeboxRecords) {
                 columns.push({
                     timeboxRecords: timeboxRecords,
+                    release: release,
                     columnHeaderConfig: {
                         record: timeboxRecords[0],
                         fieldToDisplay: 'Name',
@@ -123,6 +130,10 @@
         },
 
         _findTimeboxes: function(model) {
+            var release = this.release.getRecord();
+            var startDate = release.raw.ReleaseStartDate;
+            var endDate = release.raw.ReleaseDate;
+
             Ext.create('Rally.data.wsapi.Store', {
                 model: model,
                 fetch: ['Name', 'StartDate', 'EndDate', 'Project', 'PlannedVelocity'],
@@ -131,6 +142,15 @@
                     load: this._onTimeboxesLoad,
                     scope: this
                 },
+                filters: [{
+                  property: 'StartDate',
+                  operator: '>=',
+                  value: startDate
+                }, {
+                  property: 'EndDate',
+                  operator: '<=',
+                  value: endDate
+                }],
                 context: this.getContext().getDataContext(),
                 limit: Infinity
             });
