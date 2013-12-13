@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Iteration Planning Board</title>
+
+
+    <script type="text/javascript" src="https://rally1.rallydev.com/apps/2.0rc2/sdk-debug.js"></script>
+
+    <script type="text/javascript">
+        // I am keeping the extra , in there to simplify my code. If someone is actually using an old version of IE to make an app let me know.
+        Rally.loadScripts(
+                [
+                      "TimeboxCardBoard.js",
+                      "TimeboxScrollable.js",
+                      "IterationPlanningBoardBacklogColumn.js",
+                      "IterationPlanningBoardColumnProgressBar.js",
+                      "IterationPlanningBoardColumn.js",
+                      "TimeboxGridBoard.js",
+                      "IterationPlanningBoardApp.js",
+                ],
+        function() {
+            Rally.launchApp('Rally.apps.iterationplanningboard.IterationPlanningBoardApp', {
+                name:"Iteration Planning Board"
+            });
+        }, true);
+    </script>
+
+    <link rel="stylesheet" type="text/css" href="IterationPlanningBoardApp.css">
+</head>
+<body></body>
+</html>
