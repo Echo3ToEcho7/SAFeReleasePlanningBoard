@@ -22,14 +22,26 @@
         mixins: ['Rally.app.CardFieldSelectable'],
         cls: 'planning-board',
         modelNames: ['User Story', 'Defect'],
+        itemId: 'app',
 
         config: {
             defaultSettings: {
-                cardFields: 'Parent,Tasks,Defects,Discussion,PlanEstimate'
+                cardFields: 'Tasks,Defects,Discussion,PlanEstimate,Feature'
             }
         },
 
         launch: function() {
+            var errMsg = 'App requires a Release Timebox filtered Custom Page';
+            if (!this.getContext().getTimeboxScope()) {
+                Rally.ui.notify.Notifier.showError({message: errMsg});
+                return;
+            }
+
+            if (this.getContext().getTimeboxScope().getRecord().get('_type') !== 'release') {
+                Rally.ui.notify.Notifier.showError({message: errMsg});
+                return;
+            }
+
             this._showBoard();
         },
 

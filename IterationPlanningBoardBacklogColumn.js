@@ -114,9 +114,24 @@
         },
 
         getStoreFilter: function(model) {
+            var app = Ext.ComponentQuery.query('#app')[0];
+            var filters = [];
+            var featureName = 'Feature';
+            var tb;
+            var release;
+
             this.storeConfig.filters = [];
 
-            var filters = [];
+            if (app) {
+              tb = app.getContext().getTimeboxScope();
+            }
+            if (tb) {
+                release = tb.getRecord();
+            }
+            if (app && app.featureName) {
+              featureName = app.featureName;
+            }
+
             Ext.Array.push(filters, this.callParent(arguments));
             if (model.elementName === 'HierarchicalRequirement') {
                 if (this.context.getSubscription().StoryHierarchyEnabled) {
@@ -124,16 +139,19 @@
                         property: 'DirectChildrenCount',
                         value: 0
                     });
-                    filters.push({
-                      property: 'Feature.Release.ReleaseStartDate',
-                      operator: '>=',
-                      value: this.release.getRecord().raw.ReleaseStartDate
-                    });
-                    filters.push({
-                      property: 'Feature.Release.ReleaseDate',
-                      operator: '<=',
-                      value: this.release.getRecord().raw.ReleaseDate
-                    });
+
+                    if (release) {
+                        filters.push({
+                          property: featureName + '.Release.ReleaseStartDate',
+                          operator: '>=',
+                          value: release.raw.ReleaseStartDate
+                        });
+                        filters.push({
+                          property: featureName + '.Release.ReleaseDate',
+                          operator: '<=',
+                          value: release.raw.ReleaseDate
+                        });
+                    }
                 }
             } else if (model.elementName === 'Defect') {
                 Ext.Array.push(filters,
