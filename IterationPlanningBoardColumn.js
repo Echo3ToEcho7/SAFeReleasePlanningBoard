@@ -195,6 +195,8 @@
 
         _onBeforeCardDrop: function(column, card) {
             var cardProjectRef = Rally.util.Ref.getRelativeUri(card.getRecord().get('Project'));
+            var app = _.first(Ext.ComponentQuery.query('#app'));
+
             if (cardProjectRef !== Rally.util.Ref.getRelativeUri(column.context.getProject())) {
 
                 if (!Ext.Array.some(this.timeboxRecords, function(timeboxRecord) {
@@ -204,8 +206,10 @@
                 }
             }
 
-            if (this.release) {
-                card.getRecord().set('Release', this.release.getRecord().raw._ref);
+            if (app) {
+                if (app.getContext().getTimeboxScope()) {
+                    card.getRecord().set('Release', app.getContext().getTimeboxScope().getRecord().raw._ref);
+                }
             }
         },
 

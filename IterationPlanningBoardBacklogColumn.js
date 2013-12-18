@@ -77,6 +77,8 @@
                 this.getStatusCell().addCls(cls);
                 this.getColumnHeaderCell().addCls(cls);
             }, this, {single: true});
+
+            this.on('beforecarddroppedsave', this._onBeforeCardDrop, this);
         },
 
         _onSearchClicked: function() {
@@ -177,6 +179,10 @@
                 isMatching = isMatching && (!record.hasField('Requirement') || !record.get('Requirement'));
             }
             return isMatching;
-        }
+        },
+
+        _onBeforeCardDrop: function(column, card) {
+            card.getRecord().set('Release', null);
+        },
     });
 })();
