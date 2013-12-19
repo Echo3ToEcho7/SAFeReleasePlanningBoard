@@ -219,36 +219,36 @@
         drawHeader: function() {
             this.callParent(arguments);
 
-            this.getColumnHeader().add(
-                {
-                    xtype: 'container',
-                    cls: 'search',
-                    items: [
-                        {
-                            xtype: 'rallytextfield',
-                            cls: 'search-text',
-                            itemId: 'searchText',
-                            enableKeyEvents: true,
-                            emptyText: 'Search',
-                            listeners: {
-                                specialkey: this._onSearchTextSpecialKey,
-                                scope: this
-                            }
-                        },
-                        {
-                            xtype: 'component',
-                            cls: 'search-button',
-                            listeners: {
-                                click: {
-                                    element: 'el',
-                                    fn: this._onSearchClicked,
-                                    scope: this
-                                }
-                            }
-                        }
-                    ]
-                }
-            );
+            //this.getColumnHeader().add(
+                //{
+                    //xtype: 'container',
+                    //cls: 'search',
+                    //items: [
+                        //{
+                            //xtype: 'rallytextfield',
+                            //cls: 'search-text',
+                            //itemId: 'searchText',
+                            //enableKeyEvents: true,
+                            //emptyText: 'Search',
+                            //listeners: {
+                                //specialkey: this._onSearchTextSpecialKey,
+                                //scope: this
+                            //}
+                        //},
+                        //{
+                            //xtype: 'component',
+                            //cls: 'search-button',
+                            //listeners: {
+                                //click: {
+                                    //element: 'el',
+                                    //fn: this._onSearchClicked,
+                                    //scope: this
+                                //}
+                            //}
+                        //}
+                    //]
+                //}
+            //);
         },
 
         initComponent: function() {
@@ -367,7 +367,7 @@
 
         _onBeforeCardDrop: function(column, card) {
             card.getRecord().set('Release', null);
-        },
+        }
     });
 })();
 
@@ -682,13 +682,20 @@
          * @cfg {Number}
          */
         numColumns: 4,
-
-        release: null,
+        maxNumColumns: 6,
+        enableToggle: true,
 
         initComponent: function() {
+            var numColumns = _.parseInt('' + (_.first(Ext.ComponentQuery.query('#app')).getSetting('numColumns')), 10);
+
+            if (!isNaN(numColumns)) { this.numColumns = numColumns; }
+            if (this.numColumns > this.maxNumColumns) { this.numColumns = this.maxNumColumns; }
+            if (this.numColumns < 1) { this.numColumns = 1; }
+
             this.on('toggle', function(toggleState, gridOrBoard) {
                 if (toggleState === 'board' && !this._hasTimeboxes()) {
                     this.mon(gridOrBoard, 'aftercolumnrender', this._addBoardBlankSlate, this);
+                } else if (toggleState === 'grid') {
                 }
             }, this);
 
@@ -699,7 +706,7 @@
             this.callParent(arguments);
         },
 
-        _addGridOrBoard: function() {
+        _addGridOrBoard: function(toggleState) {
             if (!this.timeboxes) {
                 this.timeboxType = 'Iteration';
                 Rally.data.ModelFactory.getModel({
@@ -717,12 +724,10 @@
         _getBoardConfig: function() {
             var initiallyVisibleTimeboxes = this._getInitiallyVisibleTimeboxes();
             var columns = this._getColumnConfigs(initiallyVisibleTimeboxes);
-            var release = this.release;
             return Ext.merge(this.callParent(arguments), {
                 xtype: 'rallytimeboxcardboard',
                 attribute: this.timeboxType,
                 columns: columns,
-                release: release,
                 columnConfig: {
                     xtype: 'iterationplanningboardappplanningcolumn',
                     additionalFetchFields: ['PortfolioItem'],
@@ -731,6 +736,40 @@
                     }
                 },
                 scrollableColumnRecords: this.timeboxes
+            });
+        },
+
+        _getGridConfig: function () {
+            var tb = _.first(Ext.ComponentQuery.query('#app')).getContext().getTimeboxScope();
+            var release = tb ? tb.getRecord() : null;
+            var filters = null;
+
+            if (release) {
+              filters = [
+                {
+                  property: 'Feature.Release.ReleaseStartDate',
+                  value: release.raw.ReleaseStartDate
+                }, {
+                  property: 'Feature.Release.ReleaseDate',
+                  value: release.raw.ReleaseDate
+                }, {
+                  property: 'Feature.Release.Name',
+                  value: release.raw.Name
+                }, {
+                  property: 'Iteration',
+                  value: null
+                }, {
+                  property: 'DirectChildrenCount',
+                  value: 0
+                }
+              ];
+            }
+
+            return Ext.merge(this.callParent(arguments), {
+                columnCfgs: ['FormattedID', 'Feature', 'Name', 'PlanEstimate'],
+                storeConfig: {
+                  filters: filters
+                }
             });
         },
 
@@ -852,7 +891,7 @@
             }, this);
 
             this.setLoading(false);
-            this._addGridOrBoard('board');
+            this._addGridOrBoard(this.getToggleState());
         },
 
         _onObjectChange: function(record) {
@@ -902,6 +941,7 @@
 
         config: {
             defaultSettings: {
+                numColumns: 4,
                 cardFields: 'Tasks,Defects,Discussion,PlanEstimate,Feature'
             }
         },
@@ -932,13 +972,22 @@
 
         getSettingsFields: function () {
             var fields = this.callParent(arguments);
+            fields.push({
+                xtype: 'rallynumberfield',
+                name: 'numColumns',
+                label: 'Number of Iteration Columns (max 10)'
+            });
             this.appendCardFieldPickerSetting(fields);
             return fields;
         },
 
         _showBoard: function() {
+            var context = this.getContext();
             var rankScope = 'BACKLOG',
                 plugins = [
+                    {
+                        ptype: 'rallygridboardfieldpicker'
+                    },
                     {
                         ptype: 'rallygridboardfilterinfo',
                         isGloballyScoped: Ext.isEmpty(this.getSetting('project')) ? true : false
@@ -964,6 +1013,12 @@
                 modelNames: this.modelNames,
                 plugins: plugins,
                 release: this.getContext().getTimeboxScope(),
+                gridConfig: {
+                    enableBuldEdit: true,
+                    enableRanking: true,
+                    stateful: true,
+                    stateId: context.getScopedStateId('safe-iteration-planning')
+                },
                 cardBoardConfig: {
                     cardConfig: {
                         editable: true,

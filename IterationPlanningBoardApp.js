@@ -26,6 +26,7 @@
 
         config: {
             defaultSettings: {
+                numColumns: 4,
                 cardFields: 'Tasks,Defects,Discussion,PlanEstimate,Feature'
             }
         },
@@ -56,13 +57,22 @@
 
         getSettingsFields: function () {
             var fields = this.callParent(arguments);
+            fields.push({
+                xtype: 'rallynumberfield',
+                name: 'numColumns',
+                label: 'Number of Iteration Columns (max 10)'
+            });
             this.appendCardFieldPickerSetting(fields);
             return fields;
         },
 
         _showBoard: function() {
+            var context = this.getContext();
             var rankScope = 'BACKLOG',
                 plugins = [
+                    {
+                        ptype: 'rallygridboardfieldpicker'
+                    },
                     {
                         ptype: 'rallygridboardfilterinfo',
                         isGloballyScoped: Ext.isEmpty(this.getSetting('project')) ? true : false
@@ -88,6 +98,12 @@
                 modelNames: this.modelNames,
                 plugins: plugins,
                 release: this.getContext().getTimeboxScope(),
+                gridConfig: {
+                    enableBuldEdit: true,
+                    enableRanking: true,
+                    stateful: true,
+                    stateId: context.getScopedStateId('safe-iteration-planning')
+                },
                 cardBoardConfig: {
                     cardConfig: {
                         editable: true,

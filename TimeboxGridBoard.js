@@ -26,13 +26,20 @@
          * @cfg {Number}
          */
         numColumns: 4,
-
-        release: null,
+        maxNumColumns: 6,
+        enableToggle: true,
 
         initComponent: function() {
+            var numColumns = _.parseInt('' + (_.first(Ext.ComponentQuery.query('#app')).getSetting('numColumns')), 10);
+
+            if (!isNaN(numColumns)) { this.numColumns = numColumns; }
+            if (this.numColumns > this.maxNumColumns) { this.numColumns = this.maxNumColumns; }
+            if (this.numColumns < 1) { this.numColumns = 1; }
+
             this.on('toggle', function(toggleState, gridOrBoard) {
                 if (toggleState === 'board' && !this._hasTimeboxes()) {
                     this.mon(gridOrBoard, 'aftercolumnrender', this._addBoardBlankSlate, this);
+                } else if (toggleState === 'grid') {
                 }
             }, this);
 
@@ -43,7 +50,7 @@
             this.callParent(arguments);
         },
 
-        _addGridOrBoard: function() {
+        _addGridOrBoard: function(toggleState) {
             if (!this.timeboxes) {
                 this.timeboxType = 'Iteration';
                 Rally.data.ModelFactory.getModel({
@@ -61,12 +68,10 @@
         _getBoardConfig: function() {
             var initiallyVisibleTimeboxes = this._getInitiallyVisibleTimeboxes();
             var columns = this._getColumnConfigs(initiallyVisibleTimeboxes);
-            var release = this.release;
             return Ext.merge(this.callParent(arguments), {
                 xtype: 'rallytimeboxcardboard',
                 attribute: this.timeboxType,
                 columns: columns,
-                release: release,
                 columnConfig: {
                     xtype: 'iterationplanningboardappplanningcolumn',
                     additionalFetchFields: ['PortfolioItem'],
@@ -75,6 +80,40 @@
                     }
                 },
                 scrollableColumnRecords: this.timeboxes
+            });
+        },
+
+        _getGridConfig: function () {
+            var tb = _.first(Ext.ComponentQuery.query('#app')).getContext().getTimeboxScope();
+            var release = tb ? tb.getRecord() : null;
+            var filters = null;
+
+            if (release) {
+              filters = [
+                {
+                  property: 'Feature.Release.ReleaseStartDate',
+                  value: release.raw.ReleaseStartDate
+                }, {
+                  property: 'Feature.Release.ReleaseDate',
+                  value: release.raw.ReleaseDate
+                }, {
+                  property: 'Feature.Release.Name',
+                  value: release.raw.Name
+                }, {
+                  property: 'Iteration',
+                  value: null
+                }, {
+                  property: 'DirectChildrenCount',
+                  value: 0
+                }
+              ];
+            }
+
+            return Ext.merge(this.callParent(arguments), {
+                columnCfgs: ['FormattedID', 'Feature', 'Name', 'PlanEstimate'],
+                storeConfig: {
+                  filters: filters
+                }
             });
         },
 
@@ -196,7 +235,7 @@
             }, this);
 
             this.setLoading(false);
-            this._addGridOrBoard('board');
+            this._addGridOrBoard(this.getToggleState());
         },
 
         _onObjectChange: function(record) {

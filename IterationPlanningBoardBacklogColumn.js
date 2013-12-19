@@ -35,36 +35,36 @@
         drawHeader: function() {
             this.callParent(arguments);
 
-            this.getColumnHeader().add(
-                {
-                    xtype: 'container',
-                    cls: 'search',
-                    items: [
-                        {
-                            xtype: 'rallytextfield',
-                            cls: 'search-text',
-                            itemId: 'searchText',
-                            enableKeyEvents: true,
-                            emptyText: 'Search',
-                            listeners: {
-                                specialkey: this._onSearchTextSpecialKey,
-                                scope: this
-                            }
-                        },
-                        {
-                            xtype: 'component',
-                            cls: 'search-button',
-                            listeners: {
-                                click: {
-                                    element: 'el',
-                                    fn: this._onSearchClicked,
-                                    scope: this
-                                }
-                            }
-                        }
-                    ]
-                }
-            );
+            //this.getColumnHeader().add(
+                //{
+                    //xtype: 'container',
+                    //cls: 'search',
+                    //items: [
+                        //{
+                            //xtype: 'rallytextfield',
+                            //cls: 'search-text',
+                            //itemId: 'searchText',
+                            //enableKeyEvents: true,
+                            //emptyText: 'Search',
+                            //listeners: {
+                                //specialkey: this._onSearchTextSpecialKey,
+                                //scope: this
+                            //}
+                        //},
+                        //{
+                            //xtype: 'component',
+                            //cls: 'search-button',
+                            //listeners: {
+                                //click: {
+                                    //element: 'el',
+                                    //fn: this._onSearchClicked,
+                                    //scope: this
+                                //}
+                            //}
+                        //}
+                    //]
+                //}
+            //);
         },
 
         initComponent: function() {
@@ -183,6 +183,6 @@
 
         _onBeforeCardDrop: function(column, card) {
             card.getRecord().set('Release', null);
-        },
+        }
     });
 })();
